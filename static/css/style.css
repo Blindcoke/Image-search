@@ -1,0 +1,147 @@
+body {
+    background-color: rgb(132, 73, 73);
+    color: white;
+
+}
+
+.topic {
+    text-align: center;
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+}
+
+.upload-block {
+    font-size :large;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}
+
+#file-input {
+    display: none; 
+}
+
+
+.custom-file-input {
+    background-color: #e4b23d;
+    color: white;
+    padding: 8px 20px;
+    border: none;
+    border-radius: 100px;
+    cursor: pointer;
+    margin-right: 20px; 
+}
+
+.custom-file-input:hover {
+    background-color: #b9aa26;
+}
+
+.upload-button{
+    background-color: salmon; 
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 100px;
+    cursor: pointer;
+    transition: background-color 0.3s; 
+}
+
+.upload-button:hover {
+    background-color: #ff6347; 
+}
+
+#upload-message {
+    margin-bottom: 100px;
+}
+
+.search-block {
+
+    font-size: large;
+}
+
+#query-input {
+    padding: 10px 20px; 
+    border: none; 
+    border-radius: 5px; 
+    margin-right: 20px; 
+}
+
+.search {
+    position: absolute;
+    left: 40%;
+}
+
+#upload-progress {
+    width: 15%;
+    height: 20px;
+    border-radius: 10px;
+    background-color: #f0f0f0;
+    border: 1px solid #50220f;
+    overflow: hidden;
+    margin-top: 20px;
+}
+
+#upload-progress::-webkit-progress-bar {
+    background-color: #f0f0f0;
+}
+
+#upload-progress::-webkit-progress-value {
+    background-color: #a35223; 
+}
+
+#upload-progress::-moz-progress-bar {
+    background-color: #f9ac27;
+}
+
+
+.file-item {
+    position: relative;
+    display: inline-block; 
+    margin: 5px;
+}
+
+.check-buttons{
+    display: flex;
+    flex-direction: row;
+}
+.check-buttons button{
+    margin: 10px 15px;
+    background-color: rgb(46, 117, 101); 
+    color: white;
+    padding: 5px 5px;
+    border: none;
+    border-radius: 100px;
+    cursor: pointer;
+    transition: background-color 0.3s; 
+}
+
+.check-buttons button:hover {
+    background-color: #4ad5ccd7; 
+}
+
+.delete-btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translate(50%, -50%); 
+    background-color: rgba(106, 57, 86, 0.905);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+    line-height: 20px; 
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.delete-btn:hover {
+    background-color: rgb(69, 9, 9); }
+
+#selected-files {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../static/css/style.css"></link>
+    <title>Image Search</title>
+</head>
+<body>
+    <div class = "topic"><h1>Image Search</h1></div>
+    <div class = "upload-block">
+        <div class = "upload">
+            <form id="upload-form" enctype="multipart/form-data">
+                <label for="file-input" class="custom-file-input">Choose File</label>
+                <input type="file" id="file-input" onchange="ButtonShow()" name="files" accept=".png, .jpg" multiple>
+                <button class = "upload-button" type="button" onclick="uploadFiles()">Upload</button>
+            </form>
+            <div class = "check-buttons">
+                <button id="selected-button" onclick="viewSelectedFiles()">Selected Files</button>
+                <button id="uploaded" onclick="viewUploadedFiles()">Uploaded files</button>
+            </div>
+            <div id="selected-files"></div>
+            <div id="uploaded-files"></div>
+        </div>
+        <div id="current-file"></div>
+        <progress id="upload-progress" value="0" max="100" style = "display: none;"></progress>
+        <div id="upload-message"></div>
+
+        <div class = "search-block"
+            <form id="search-form">
+                <input type="text" id="query-input" onkeyup="searchImages()" placeholder="Search by description...">
+                <!-- <button type="button" onclick="searchImages()">Search</button> -->
+            </form>
+        </div>
+    </div>
+    <div class = "search">
+        <h2>Search Results:</h2>
+        <ul id="search-results">
+        </ul>
+    </div>
+
+    
+<script>
+    pressedSel = false;
+    pressedUp = false;
+    async function uploadFiles() {
+        const fileInput = document.getElementById('file-input');
+        const files = fileInput.files;
+        const progressBar = document.getElementById('upload-progress'); 
+        const uploadMessage = document.getElementById('upload-message');
+        const currentFile = document.getElementById('current-file');
+        uploadedButton = document.getElementById('uploaded');
+        console.log(files.length);
+        if (files.length === 0) {
+            uploadMessage.textContent = 'Select files';
+            return;
+        }
+        progressBar.style.display = 'block';
+        
+        try {
+            let filesUploaded = 0;
+
+            for (const file of files) {
+                const formData = new FormData();
+                formData.append('files', file);
+                currentFile.textContent = `Uploading ${file.name}...`;
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                currentFile.textContent = '';
+                const data = await response.json();
+                filesUploaded += data.files;
+
+                const totalFiles = files.length;
+                const percentComplete = (filesUploaded / totalFiles) * 100;
+                progressBar.value = percentComplete;
+                uploadMessage.textContent = `Uploaded ${filesUploaded} out of ${totalFiles} files`;
+            }
+
+            uploadMessage.textContent = 'Upload successful';
+        } catch (error) {
+            console.error('Error:', error);
+            uploadMessage.textContent = 'Upload failed';
+        }
+    }
+    
+    async function searchImages() {
+        const query = document.getElementById('query-input').value;
+        try {
+            const response = await fetch('/search', {
+                method: 'POST',
+                body: JSON.stringify({ query: query }), 
+                headers: { 'Content-Type': 'application/json' }
+            });
+            if (!response.ok) {
+                throw new Error('Failed to fetch data');
+            }
+            const data = await response.json();
+            const searchResults = document.getElementById('search-results');
+            searchResults.innerHTML = '';
+            data.forEach(result => {
+                const li = document.createElement('li');
+                const img = document.createElement('img');
+                img.src = "../static/images/" + result[0];
+                img.style.maxWidth = '200px'; 
+                li.appendChild(img);
+                const text = document.createElement('div');
+                text.textContent = `Image: ${result[0]}, Similarity: ${result[1]}`;
+                li.appendChild(text);
+                searchResults.appendChild(li);
+            });
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    function viewSelectedFiles() {
+        if (!pressedSel) {
+            if (pressedUp) {
+                hideUploadedFiles();
+            }
+            showSelectedFiles();
+        } else {
+            hideSelectedFiles();
+        }}
+
+    function showSelectedFiles() {
+        const fileInput = document.getElementById('file-input');
+        const selectedFilesDiv = document.getElementById('selected-files');
+        const button = document.getElementById('selected-button');
+        button.innerHTML = 'Hide Files';
+        selectedFilesDiv.innerHTML = ''; 
+        pressedSel = true;
+        const files = fileInput.files;
+        if (files.length === 0) {
+            selectedFilesDiv.textContent = 'No files selected';
+        } else {
+            Array.from(files).forEach(file => {
+                const fileItem = document.createElement('div');
+                fileItem.classList.add('file-item');
+                
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(file);
+                img.style.width = '80px';
+                img.style.height = '60px';
+                fileItem.appendChild(img);
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = 'X';
+                deleteBtn.classList.add('delete-btn');
+                deleteBtn.onclick = () => {
+                    deleteFile(file, fileItem);
+                };
+                fileItem.appendChild(deleteBtn);
+
+                selectedFilesDiv.appendChild(fileItem);
+            });
+        }}
+        
+    function hideSelectedFiles() {
+        pressedSel = false;
+        const selectedFilesDiv = document.getElementById('selected-files');
+        const button = document.getElementById('selected-button');
+        button.innerHTML = 'Selected Files';
+        selectedFilesDiv.innerHTML = '';
+    }
+    
+    function deleteFile(file, fileItem) {
+        const fileInput = document.getElementById('file-input');
+        const selectedFilesDiv = document.getElementById('selected-files');
+        const files = fileInput.files;
+        const fileListArray = Array.from(files);
+        const newFiles = fileListArray.filter(f => f !== file);
+        const newFileList = new ClipboardEvent('').clipboardData || new DataTransfer();
+        newFiles.forEach(f => newFileList.items.add(f));
+        fileInput.files = newFileList.files;
+        selectedFilesDiv.removeChild(fileItem);
+    }
+
+    function viewUploadedFiles() {
+        if (!pressedUp) {
+            if (pressedSel) {
+                hideSelectedFiles();
+            }
+            showUploadedFiles();
+        } else {
+            hideUploadedFiles();
+        
+        }
+    }
+
+    async function showUploadedFiles() {
+        try {
+            pressedUp = true;
+            const response = await fetch('/uploaded-files');
+            if (!response.ok) {
+                throw new Error('Failed to fetch uploaded files');
+            }
+            const uploadedFilesData = await response.json();
+
+            // Assuming uploadedFilesDiv is the container where you want to display the uploaded files
+            const uploadedFilesDiv = document.getElementById('uploaded-files');
+            const uploadedButton = document.getElementById('uploaded');
+            uploadedButton.innerHTML = 'Hide Files';
+            uploadedFilesDiv.innerHTML = ''; 
+
+            uploadedFilesData.forEach(filename => {
+                const fileItem = document.createElement('div');
+                fileItem.classList.add('file-item');
+                
+                const img = document.createElement('img');
+                img.src = `../static/images/${filename}`; 
+                img.style.width = '80px';
+                img.style.height = '60px';
+                fileItem.appendChild(img);
+                const deleteUpBtn = document.createElement('button');
+                deleteUpBtn.textContent = 'X';
+                deleteUpBtn.classList.add('delete-btn');
+                deleteUpBtn.onclick = () => {
+                    deleteUpFile(filename, fileItem);
+                };
+                fileItem.appendChild(deleteUpBtn);
+                uploadedFilesDiv.appendChild(fileItem);
+            });
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+    async function deleteUpFile(filename, fileItem) {
+        try {
+            const response = await fetch(`/delete/${filename}`, {
+                method: 'DELETE'
+            });
+            if (!response.ok) {
+                throw new Error('Failed to delete file');
+            }
+            fileItem.remove(); 
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    function hideUploadedFiles() {
+        pressedUp = false;
+        const uploadedFilesDiv = document.getElementById('uploaded-files');
+        const button = document.getElementById('uploaded');
+        button.innerHTML = 'Uploaded Files';
+        uploadedFilesDiv.innerHTML = '';
+    }
+    function ButtonShow() {
+        const selectedButton = document.getElementById('selected-button');
+        uploadMessage = document.getElementById('upload-message');
+        progressBar = document.getElementById('upload-progress');
+        uploadMessage.textContent = '';
+        progressBar.style.display = 'none';
+    }
+</script>
+</body>
+</html>
