@@ -5,7 +5,7 @@ from fastapi.templating import Jinja2Templates
 import cv2
 import numpy as np
 from PIL import Image
-from transformers import pipeline
+from transformers import pipeline, BlipForConditionalGeneration
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 from io import BytesIO
@@ -13,6 +13,7 @@ from typing import List, Dict
 import os
 from pydantic import BaseModel
 import pickle
+import torch
 
 app = FastAPI()
 
@@ -21,7 +22,9 @@ templates = Jinja2Templates(directory="templates")
 image_descriptions = {}
 images = {}
 similarity = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
-image_to_text = pipeline("image-to-text", model="Salesforce/blip-image-captioning-large")
+# model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-large", torch_dtype=torch.float16).to("cuda")
+# image_to_text = pipeline("image-to-text", model=model)
+image_to_text = pipeline("image-to-text", model="Salesforce/blip-image-captioning-large", device=0)
 class ImageUpload(BaseModel):
     filename: str
     contents: bytes

@@ -34,7 +34,7 @@
         </div>
     </div>
     <div class = "search">
-        <h2>Search Results:</h2>
+        <h2 id = "search-label" style = "display: none;">Search Results:</h2>
         <ul id="search-results">
         </ul>
     </div>
@@ -102,7 +102,9 @@
             }
             const data = await response.json();
             const searchResults = document.getElementById('search-results');
+            const searchLabel = document.getElementById('search-label');
             searchResults.innerHTML = '';
+            searchLabel.style.display = 'block';
             data.forEach(result => {
                 const li = document.createElement('li');
                 const img = document.createElement('img');
@@ -203,7 +205,6 @@
             }
             const uploadedFilesData = await response.json();
 
-            // Assuming uploadedFilesDiv is the container where you want to display the uploaded files
             const uploadedFilesDiv = document.getElementById('uploaded-files');
             const uploadedButton = document.getElementById('uploaded');
             uploadedButton.innerHTML = 'Hide Files';
